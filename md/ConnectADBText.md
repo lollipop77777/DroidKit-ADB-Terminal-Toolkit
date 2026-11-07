@@ -1,8 +1,8 @@
 # 📘 Complete ADB Setup Guide (Android 4.x - Android 14)
 
-ADB (Android Debug Bridge) is a powerful debugging and management tool provided by Android that allows developers to interact with devices through commands, install apps, view logs, transfer files, and more.
+ADB (Android Debug Bridge) is a powerful debugging and management tool provided by Android that allows developers to interact with devices through commands, install apps, view logs, transfer files, and manage connected devices.
 
-This tutorial provides comprehensive guidance for enabling **ADB debugging** on **Android 4.x through Android 14**, supporting both **USB debugging** and **wireless debugging** methods.
+This tutorial provides comprehensive guidance for enabling **ADB debugging** on **Android 4.x through Android 14**, supporting both **USB debugging** and **wireless debugging** methods. Settings names and menu paths may vary slightly by manufacturer and Android version.
 
 ---
 
@@ -132,17 +132,19 @@ This tutorial provides comprehensive guidance for enabling **ADB debugging** on 
 
 Android 11 introduced official wireless debugging support without requiring USB pairing first.
 
+> Important: the phone shows its own IP address and pairing port in the Wireless debugging screen. Do not assume the port is always `5555`.
+
 #### Configuration Steps
 
 1. **Enable Wireless Debugging**
    - Open **Settings → System → Developer options**
    - Enable ✅ **Wireless debugging**
-   - Ensure phone and computer are on same Wi-Fi network
+   - Ensure phone and computer are on the same Wi-Fi network
 
 2. **Pair Device**
    - Tap **"Wireless debugging"** for detailed settings
    - Tap **"Pair device with pairing code"**
-   - Screen will display:
+   - Screen will display something like:
      ```
      IP address: 192.168.1.100
      Port: 12345
@@ -151,7 +153,7 @@ Android 11 introduced official wireless debugging support without requiring USB 
 
 3. **Computer-Side Pairing**
    ```bash
-   # Use displayed IP and port for pairing
+   # Use the IP and port shown on the phone's Wireless debugging screen
    adb pair 192.168.1.100:12345
    
    # Enter the 6-digit pairing code from phone
@@ -160,8 +162,8 @@ Android 11 introduced official wireless debugging support without requiring USB 
 
 4. **Connect Device**
    ```bash
-   # Connect to device (connection port usually 5555)
-   adb connect 192.168.1.100:5555
+   # Use the actual IP and port displayed by the device
+   adb connect 192.168.1.100:12345
    
    # Verify connection
    adb devices
@@ -287,10 +289,8 @@ adb shell settings put global development_settings_enabled 1
 - Some models require disabling **"Enhanced protection"**
 
 **Solutions:**
-```bash
-# Disable HiSuite if causing conflicts
-adb shell pm disable-user com.huawei.hisuite
-```
+- If HiSuite is interfering, close it or disable it from the app list if needed
+- Re-enable it later if your device requires it for normal operation
 
 ### OPPO/ColorOS Devices
 **Special Requirements:**
@@ -422,15 +422,15 @@ adb shell pm disable-user com.huawei.hisuite
 
 2. **Check RSA Key Fingerprint**
    - Verify the RSA key fingerprint matches
-   - Delete `~/.android/adbkey*` files and reconnect
+   - Delete `~/.android/adbkey*` only as a last resort if the device still does not trust the computer
 
 3. **Reset ADB Keys**
    ```bash
-   # Reset ADB keys
+   # Restart the ADB service and reconnect
    adb kill-server
-   rm ~/.android/adbkey*
    adb start-server
    ```
+   Then reconnect the device and authorize it again.
 
 ---
 
@@ -507,17 +507,17 @@ adb shell ps | grep adbd
 2. **Disable wireless debugging after use**
 3. **Regularly check authorized debugging devices**
 4. **Avoid using wireless debugging on public Wi-Fi**
-5. **Use VPN when debugging over untrusted networks**
+5. **Keep USB debugging disabled when you are not actively using it**
 
-### Performance Optimization
+### Quick ADB Status Checks
 
 ```bash
-# Optimize ADB performance
-adb shell settings put global development_settings_enabled 1
-adb shell settings put global adb_enabled 1
+# Confirm the device is connected and reachable
+adb devices -l
 
-# Increase ADB buffer size
-adb shell setprop persist.adb.trace_mask 0
+# Restart the ADB server if the device appears stale or unavailable
+adb kill-server
+adb start-server
 ```
 
 ---
